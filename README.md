@@ -1,5 +1,4 @@
-# Movie Booking Assistant — Demo
-
+# Movie Booking Assistant
 A demo movie booking system for Bangalore cinemas, built to showcase two ways of integrating AI with a Python backend:
 
 1. **Gemini chat** — a terminal chatbot powered by Google Gemini with function calling
