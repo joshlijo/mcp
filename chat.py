@@ -5,21 +5,21 @@ import google.generativeai as genai
 
 load_dotenv()
 
-from api_v1 import get_transcript, get_call_metadata, list_recent_calls
-from api_v2 import analyze_sentiment, score_call_quality, detect_keywords, summarize_call
-from api_v3 import flag_call, detect_speakers, get_compliance_check
+from api_v1 import search_movies, get_movie_details, get_showtimes
+from api_v2 import book_tickets, cancel_booking, get_booking_details, list_user_bookings
+from api_v3 import list_theatres, check_seat_availability, get_theatre_details
 
 TOOLS_MAP = {
-    "get_transcript": get_transcript,
-    "get_call_metadata": get_call_metadata,
-    "list_recent_calls": list_recent_calls,
-    "analyze_sentiment": analyze_sentiment,
-    "score_call_quality": score_call_quality,
-    "detect_keywords": detect_keywords,
-    "summarize_call": summarize_call,
-    "flag_call": flag_call,
-    "detect_speakers": detect_speakers,
-    "get_compliance_check": get_compliance_check,
+    "search_movies": search_movies,
+    "get_movie_details": get_movie_details,
+    "get_showtimes": get_showtimes,
+    "book_tickets": book_tickets,
+    "cancel_booking": cancel_booking,
+    "get_booking_details": get_booking_details,
+    "list_user_bookings": list_user_bookings,
+    "list_theatres": list_theatres,
+    "check_seat_availability": check_seat_availability,
+    "get_theatre_details": get_theatre_details,
 }
 
 
@@ -33,20 +33,24 @@ def main():
 
     chat_session = model.start_chat()
 
-    print("\nCQA Assistant ready. Type your question (or 'quit' to exit).\n")
+    print("\nMovie Booking Assistant ready. Type your question (or 'quit' to exit).\n")
     while True:
         user_input = input("You: ").strip()
+        if not user_input:
+            continue
         if user_input.lower() in ("quit", "exit"):
             break
 
         response = chat_session.send_message(user_input)
 
         while True:
-            function_calls = [
-                part.function_call
-                for part in response.parts
-                if part.function_call.name
-            ]
+            function_calls = []
+            for part in response.parts:
+                try:
+                    if part.function_call and part.function_call.name:
+                        function_calls.append(part.function_call)
+                except AttributeError:
+                    pass
 
             if not function_calls:
                 break
@@ -67,7 +71,8 @@ def main():
 
             response = chat_session.send_message(tool_response_parts)
 
-        print(f"\nGemini: {response.text}\n")
+        reply = "".join(part.text for part in response.parts if hasattr(part, "text") and part.text)
+        print(f"\nGemini: {reply}\n")
 
 
 if __name__ == "__main__":
